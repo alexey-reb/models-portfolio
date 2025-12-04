@@ -410,11 +410,9 @@
         }
         
         function viewModel(modelId) {
-            const model = allModels.find(m => m.id === modelId);
-            if (model) {
-                alert(`Модель: ${model.name}\nID: ${model.id}\n\nСтраница модели будет реализована в следующем этапе.`);
-                // В будущем: window.location.href = `model.html?id=${modelId}`;
-            }
+    // Перенаправляем на страницу модели
+    window.location.href = `model.html?id=${modelId}`;
+    }
         }
         
         // Запуск при загрузке страницы
