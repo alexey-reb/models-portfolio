@@ -165,6 +165,37 @@
                 grid-template-columns: 1fr;
             }
         }
+        
+        /* Панель отладки */
+        .debug-panel {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.85);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 9999;
+            max-width: 300px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .debug-close {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -174,6 +205,24 @@
             <div class="loader"></div>
             <div style="font-weight: bold; margin-bottom: 5px;">Каталог моделей</div>
             <div style="color: #666; font-size: 14px;">Загрузка данных...</div>
+        </div>
+    </div>
+    
+    <!-- Панель отладки -->
+    <div class="debug-panel" id="debug-panel" style="display: none;">
+        <div class="debug-header">
+            <strong>🔧 Отладка</strong>
+            <button class="debug-close" onclick="document.getElementById('debug-panel').style.display='none'">×</button>
+        </div>
+        <div>Загружено: <span id="debug-count">0</span> моделей</div>
+        <div>Отображено: <span id="debug-shown">0</span> карточек</div>
+        <div style="margin-top: 8px; font-size: 10px; color: #aaa;">
+            <button onclick="showAllModelIds()" style="background: #444; color: white; border: none; padding: 3px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;">
+                Показать ID
+            </button>
+            <button onclick="checkMissingModels()" style="background: #444; color: white; border: none; padding: 3px 6px; border-radius: 3px; cursor: pointer; font-size: 10px; margin-left: 5px;">
+                Проверить
+            </button>
         </div>
     </div>
     
@@ -218,23 +267,33 @@
         
         // Автоматически определяем URL JSON
         function getJsonUrl() {
+            console.log('Определяю URL JSON...');
+            console.log('Hostname:', window.location.hostname);
+            console.log('Pathname:', window.location.pathname);
+            
             const pathParts = window.location.pathname.split('/');
             const repoName = pathParts[1] || 'models-portfolio';
             const username = window.location.hostname.split('.')[0];
             
             // Если username github.io, значит это GitHub Pages
             if (window.location.hostname.includes('github.io')) {
-                return `https://raw.githubusercontent.com/${username}/${repoName}/main/data/models.json`;
+                const url = `https://raw.githubusercontent.com/${username}/${repoName}/main/data/models.json`;
+                console.log('GitHub Pages URL:', url);
+                return url;
             } else {
                 // Для локального тестирования
+                console.log('Локальный URL: data/models.json');
                 return 'data/models.json';
             }
         }
         
         const JSON_URL = getJsonUrl();
+        console.log('Использую JSON URL:', JSON_URL);
         
         // Основная функция загрузки
         async function loadModels() {
+            console.log('=== Начинаю загрузку данных ===');
+            
             const statusEl = document.getElementById('status');
             const containerEl = document.getElementById('models-container');
             const filtersEl = document.querySelector('.filters');
@@ -243,7 +302,7 @@
             try {
                 statusEl.textContent = '📡 Подключаюсь к GitHub...';
                 
-                // Загружаем данные
+                console.log('Загружаю данные с:', JSON_URL);
                 const response = await fetch(JSON_URL);
                 
                 if (!response.ok) {
@@ -251,11 +310,17 @@
                 }
                 
                 allModels = await response.json();
+                console.log('Данные получены. Всего моделей:', allModels.length);
                 
                 // Валидация данных
                 if (!Array.isArray(allModels)) {
                     throw new Error('Данные должны быть массивом');
                 }
+                
+                // Отладочный вывод всех моделей
+                allModels.forEach((model, index) => {
+                    console.log(`${index + 1}. ${model.id}: ${model.name || 'Без имени'} (фото: ${model.photos?.length || 0})`);
+                });
                 
                 // Обновляем интерфейс
                 statusEl.innerHTML = `✅ Загружено моделей: <strong>${allModels.length}</strong>`;
@@ -279,7 +344,7 @@
                 }, 300);
                 
             } catch (error) {
-                console.error('Ошибка:', error);
+                console.error('Ошибка загрузки:', error);
                 
                 statusEl.innerHTML = `❌ Ошибка загрузки: ${error.message}`;
                 statusEl.style.background = '#ffebee';
@@ -294,6 +359,7 @@
                             <li>JSON содержит валидный массив данных</li>
                             <li>Формат данных корректный</li>
                         </ul>
+                        <p>Пробуемый URL: ${JSON_URL}</p>
                         <button onclick="location.reload()" style="
                             margin-top: 15px;
                             padding: 10px 20px;
@@ -316,6 +382,8 @@
         
         // Отображение списка моделей
         function displayModels(models) {
+            console.log('Отображаю модели:', models.length);
+            
             const containerEl = document.getElementById('models-container');
             const totalCountEl = document.getElementById('total-count');
             
@@ -356,6 +424,7 @@
                             </div>
                             <div style="margin-top: 10px; font-size: 12px; color: #999;">
                                 ${model.photos ? `📸 ${model.photos.length} фото` : 'Нет фото'}
+                                ${model.is_available === false ? ' • ❌ Не доступна' : ''}
                             </div>
                         </div>
                     </div>
@@ -363,10 +432,15 @@
             }).join('');
             
             containerEl.innerHTML = `<div class="models-grid">${modelsHTML}</div>`;
+            
+            // Обновляем панель отладки
+            updateDebugPanel();
         }
         
-        // Функции фильтрации, сортировки и поиска (оставляем как были)
+        // Функции фильтрации, сортировки и поиска
         function filterModels(type) {
+            console.log('Применяю фильтр:', type);
+            
             const buttons = document.querySelectorAll('.filter-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
@@ -375,11 +449,14 @@
                 displayModels(allModels);
             } else if (type === 'available') {
                 const available = allModels.filter(m => m.is_available !== false);
+                console.log('Доступные модели:', available.length);
                 displayModels(available);
             }
         }
         
         function sortModels(by) {
+            console.log('Сортирую по:', by);
+            
             const sorted = [...filteredModels];
             
             if (by === 'name') {
@@ -393,6 +470,7 @@
         
         function searchModels() {
             const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+            console.log('Поиск:', searchTerm);
             
             if (!searchTerm) {
                 displayModels(allModels);
@@ -406,19 +484,67 @@
                 (model.category && model.category.toLowerCase().includes(searchTerm))
             );
             
+            console.log('Найдено:', filtered.length, 'моделей');
             displayModels(filtered);
         }
         
+        // ВАЖНО: Исправленная функция - была ошибка с закрывающей скобкой!
         function viewModel(modelId) {
-    // Перенаправляем на страницу модели
-    window.location.href = `model.html?id=${modelId}`;
-
+            console.log('Открываю модель:', modelId);
+            window.location.href = `model.html?id=${modelId}`;
+        }
+        
+        // Функции для отладки
+        function showAllModelIds() {
+            console.group('📋 Все ID моделей:');
+            allModels.forEach((model, i) => {
+                console.log(`${i+1}. ${model.id} - ${model.name || 'Без имени'}`);
+            });
+            console.groupEnd();
+            
+            alert('Список ID выведен в консоль (F12 → Console)');
+        }
+        
+        function checkMissingModels() {
+            const displayedIds = Array.from(document.querySelectorAll('.model-card'))
+                .map(card => card.onclick?.toString().match(/viewModel\('([^']+)'\)/)?.[1])
+                .filter(id => id);
+            
+            const missingIds = allModels
+                .map(model => model.id)
+                .filter(id => !displayedIds.includes(id));
+            
+            if (missingIds.length === 0) {
+                alert('✅ Все модели отображаются!');
+            } else {
+                console.warn('Не отображаются:', missingIds);
+                alert(`❌ Не отображаются: ${missingIds.join(', ')}\n\nСмотрите консоль для деталей.`);
+            }
+        }
+        
+        function updateDebugPanel() {
+            const panel = document.getElementById('debug-panel');
+            if (!panel) return;
+            
+            panel.style.display = 'block';
+            document.getElementById('debug-count').textContent = allModels.length;
+            document.getElementById('debug-shown').textContent = 
+                document.querySelectorAll('.model-card').length;
+        }
         
         // Запуск при загрузке страницы
-        document.addEventListener('DOMContentLoaded', loadModels);
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== Каталог моделей загружается ===');
+            console.log('Версия:', '1.0');
+            console.log('Текущий URL:', window.location.href);
+            loadModels();
+        });
         
         // Автообновление каждые 5 минут
-        setInterval(loadModels, 5 * 60 * 1000);
+        setInterval(() => {
+            console.log('🔄 Автообновление данных...');
+            loadModels();
+        }, 5 * 60 * 1000);
     </script>
 </body>
 </html>
