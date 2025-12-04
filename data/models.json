@@ -1,21 +1,37 @@
 [
   {
-    "id": "test_model_1",
+    "id": "anna_ivanova",
     "name": "Анна Иванова",
     "height": "175",
+    "measurements": "88-60-90",
     "city": "Москва",
+    "category": "fashion",
+    "is_available": true,
+    "bio": "Опыт работы 3 года. Участвовала в показах Mercedes-Benz Fashion Week.",
     "photos": [
-      "https://yadi.sk/i/abc123photo1",
-      "https://yadi.sk/i/def456photo2"
+      "https://avatars.mds.yandex.net/i?id=c08e04b53b6b507fa988cbf017fdf66f_l-5227094-images-thumbs&n=13",
+      "https://avatars.mds.yandex.net/i?id=7c89d31de1259a7682c09e6a1173498d_l-4031265-images-thumbs&n=13"
     ]
   },
   {
-    "id": "test_model_2",
+    "id": "maria_petrova",
     "name": "Мария Петрова",
     "height": "168",
     "city": "Санкт-Петербург",
+    "category": "commercial",
+    "is_available": true,
     "photos": [
-      "https://yadi.sk/i/ghi789photo1"
+      "https://avatars.mds.yandex.net/i?id=4d34246a2275de546e52d9727a48046e_l-5238371-images-thumbs&n=13"
     ]
+  },
+  {
+    "id": "elena_sidorova",
+    "name": "Елена Сидорова",
+    "height": "180",
+    "city": "Новосибирск",
+    "category": "fashion",
+    "is_available": false,
+    "bio": "Специализация: high fashion",
+    "photos": []
   }
 ]
