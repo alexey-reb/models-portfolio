@@ -1,0 +1,44 @@
+<!-- test-models.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест моделей</title>
+</head>
+<body>
+    <h1>Тест загрузки всех моделей</h1>
+    <div id="results"></div>
+    
+    <script>
+    async function testAllModels() {
+        const jsonUrl = 'https://raw.githubusercontent.com/YOUR-USERNAME/models-portfolio/main/data/models.json';
+        
+        try {
+            const response = await fetch(jsonUrl);
+            const models = await response.json();
+            
+            let html = `<p>Всего моделей: ${models.length}</p><ul>`;
+            
+            models.forEach(model => {
+                const testUrl = `model.html?id=${model.id}`;
+                html += `
+                    <li>
+                        <strong>${model.name}</strong> (ID: ${model.id})
+                        <a href="${testUrl}" target="_blank">Открыть</a>
+                        - ${model.photos ? model.photos.length + ' фото' : 'нет фото'}
+                    </li>
+                `;
+            });
+            
+            html += '</ul>';
+            document.getElementById('results').innerHTML = html;
+            
+        } catch (error) {
+            document.getElementById('results').innerHTML = 
+                `<p style="color: red">Ошибка: ${error.message}</p>`;
+        }
+    }
+    
+    testAllModels();
+    </script>
+</body>
+</html>
