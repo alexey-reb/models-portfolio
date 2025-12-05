@@ -1,1 +1,17 @@
-
+{
+  "name": "models-sync-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for syncing models data",
+  "main": "sync-models.js",
+  "scripts": {
+    "sync": "node sync-models.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "dependencies": {
+    "google-spreadsheet": "^3.3.0",
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
